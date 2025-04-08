@@ -1,0 +1,8 @@
+ sf::Music music;
+ if (!music.openFromFile("D:/nhacgame.ogg.ogg")) {
+     std::cerr << "Không thể mở file nhạc.\n";
+     return -1;
+ }
+ music.setLoop(true);
+ music.setVolume(50);
+ music.play();

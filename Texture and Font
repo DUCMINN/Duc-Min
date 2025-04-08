@@ -15,3 +15,37 @@ bool loadFont(Font& font, const std::string& filepath) {
     }
     return true;
 }
+int main ()
+{
+ Texture backgroundTex, gemTex, hudTex, startTex;
+ if (!loadTexture(backgroundTex, "D:/game/Data/Texture/background.png") ||
+     !loadTexture(gemTex, "D:/game/Data/Texture/gems.png") ||
+     !loadTexture(hudTex, "D:/hud.png") ||
+     !loadTexture(startTex, "D:/start (2).jpg")) {
+     return -1;
+ }
+
+ Sprite background(backgroundTex), gems(gemTex), hud(hudTex), startBackground(startTex);
+ hud.setPosition(520, 0);
+ hud.setColor(Color(10, 10, 10, 150));
+
+ Font font;
+ if (!loadFont(font, "C:/Windows/Fonts/Verdana.ttf")) return -1;
+
+ Text timeText, scoreText;
+ timeText.setFont(font); timeText.setCharacterSize(24); timeText.setFillColor(Color::White); timeText.setPosition(550, 15);
+ scoreText.setFont(font); scoreText.setCharacterSize(24); scoreText.setFillColor(Color::White); scoreText.setPosition(550, 55);
+
+ Text titleText("GAME KIM CUONG", font, 40);
+ titleText.setFillColor(Color::Yellow);
+ titleText.setPosition(180, 100);
+
+ Text startBtn("Start", font, 36);
+ startBtn.setFillColor(Color::Green);
+ startBtn.setPosition(270, 250);
+
+ Text highScoreBtn("High Score", font, 32);
+ highScoreBtn.setFillColor(Color::Blue);
+ highScoreBtn.setPosition(260, 320);
+ return 0;
+}

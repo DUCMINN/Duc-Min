@@ -1,35 +1,34 @@
+// Resources.cpp
 #include "Resources.h"
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <algorithm>
 
-bool loadTexture(sf::Texture& texture, const std::string& filepath) {
-    if (!texture.loadFromFile(filepath)) {
-        std::cerr << "Không thể tải ảnh: " << filepath << "\n";
-        return false;
-    }
-    return true;
+std::map<std::string, sf::Texture> Resources::textures;
+std::map<std::string, sf::Font> Resources::fonts;
+std::map<std::string, sf::SoundBuffer> Resources::sounds;
+
+void Resources::load() {
+    sf::Texture tex;
+    if (tex.loadFromFile("D:/bg game.jpg"))
+        textures["tiles"] = tex;
+
+    sf::Font font;
+    if (font.loadFromFile("C:/Windows/Fonts/Verdana.ttf"))
+        fonts["arial"] = font;
+
+    sf::SoundBuffer buffer;
+    if (buffer.loadFromFile("D:/nhacgame.ogg.ogg"))
+        sounds["music"] = buffer;
+
+    // Bạn có thể thêm các tài nguyên khác ở đây
 }
 
-bool loadFont(sf::Font& font, const std::string& filepath) {
-    if (!font.loadFromFile(filepath)) {
-        std::cerr << "Không thể tải font: " << filepath << "\n";
-        return false;
-    }
-    return true;
+const sf::Texture& Resources::getTexture(const std::string& name) {
+    return textures.at(name);
 }
 
-std::vector<int> loadHighScores(const std::string& filename) {
-    std::ifstream file(filename);
-    std::vector<int> scores;
-    int score;
-    while (file >> score) scores.push_back(score);
-    std::sort(scores.rbegin(), scores.rend());
-    return scores;
+const sf::Font& Resources::getFont(const std::string& name) {
+    return fonts.at(name);
 }
 
-void saveHighScore(const std::string& filename, int score) {
-    std::ofstream out(filename, std::ios::app);
-    if (out) out << score << "\n";
+const sf::SoundBuffer& Resources::getSound(const std::string& name) {
+    return sounds.at(name);
 }

@@ -1,55 +1,23 @@
 #include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
 #include "Game.h"
-#include "Resources.h"
-#include "UI.h"
 
 int main() {
-    sf::RenderWindow app(sf::VideoMode(720, 480), "Game Kim Cuong", sf::Style::Close);
+    srand(time(0));
+    RenderWindow app(VideoMode(720, 480), "Game Kim Cuong", Style::Close);
     app.setVerticalSyncEnabled(true);
-    app.setFramerateLimit(60);
+    app.setFramerateLimit(270);
 
-    sf::Music music;
-    if (!music.openFromFile("assets/sounds/nhacgame.ogg")) {
-        std::cerr << "Không thể mở file nhạc.\n";
-        return -1;
-    }
-    music.setLoop(true);
-    music.setVolume(50);
-    music.play();
-
-    sf::Texture backgroundTex, gemTex, hudTex, startTex;
-    if (!loadTexture(backgroundTex, "assets/textures/bg_game.jpg") ||
-        !loadTexture(gemTex, "assets/textures/gems.png") ||
-        !loadTexture(hudTex, "assets/textures/hud.png") ||
-        !loadTexture(startTex, "assets/textures/start.jpg")) {
-        return -1;
-    }
-
-    sf::Font font;
-    if (!loadFont(font, "C:/Windows/Fonts/Verdana.ttf")) return -1;
-
-    GameState gameState = GameState::StartScreen;
-    int totalScore = 0;
-    sf::Clock clock;
+    Game game;
     
-    // Add logic for game state transitions and event handling here
-
+    // Game loop
     while (app.isOpen()) {
         sf::Event e;
         while (app.pollEvent(e)) {
-            if (e.type == sf::Event::Closed) app.close();
+            game.handleEvents(e, app);
         }
 
-        app.clear();
-
-        if (gameState == GameState::StartScreen) {
-            drawStartScreen(app, font);
-        } else if (gameState == GameState::HighScoreScreen) {
-            drawHighScoresScreen(app, font);
-        } else if (gameState == GameState::GameOver) {
-            drawGameOverScreen(app, font, totalScore);
-        }
+        game.update(app.getClock().getElapsedTime().asSeconds());
+        game.render(app);
 
         app.display();
     }

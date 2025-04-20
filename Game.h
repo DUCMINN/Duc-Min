@@ -8,11 +8,15 @@
 using namespace sf;
 
 struct piece {
+  struct piece {
     int x, y, col, row, kind, match, alpha;
-    piece() { match = 0; alpha = 255; }
-} grid[10][10];
+    piece() : match(0), alpha(255) {}
+};
 
 class Game {
+private:
+    piece grid[10][10]; // <-- để trong class
+}
 public:
     Game();
     void initGrid();

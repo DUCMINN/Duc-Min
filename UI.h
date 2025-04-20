@@ -2,10 +2,7 @@
 #define UI_H
 
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
 
-void drawStartScreen(sf::RenderWindow& app, const sf::Font& font);
-void drawHighScoresScreen(sf::RenderWindow& app, const sf::Font& font);
-void drawGameOverScreen(sf::RenderWindow& app, const sf::Font& font, int totalScore);
+void renderUI(sf::RenderWindow& app, sf::Sprite& hud, sf::Text& timeText, sf::Text& scoreText);
 
-#endif // UI_H
+#endif

@@ -1,18 +1,74 @@
 #include "Game.h"
 #include <iostream>
-#include <cstdlib>
+#include <fstream>
+#include <algorithm>
 
-int ts = 54;
-sf::Vector2i offset(48, 28);
-piece grid[10][10];
+Game::Game() {
+    ts = 54;
+    offset = Vector2i(48, 28);
+    gameState = GameState::StartScreen;
+    timeLimit = 90;
+    totalScore = 0;
+    if (!music.openFromFile("D:/nhacgame.ogg.ogg")) {
+        std::cerr << "Không thể mở file nhạc.\n";
+        exit(-1);
+    }
+    music.setLoop(true);
+    music.setVolume(50);
+    music.play();
+    
+    // Tải ảnh
+    if (!backgroundTex.loadFromFile("D:/bg game.jpg") ||
+        !gemTex.loadFromFile("D:/game/Data/Texture/gems.png") ||
+        !hudTex.loadFromFile("D:/hud.png") ||
+        !startTex.loadFromFile("D:/start1.jpg")) {
+        std::cerr << "Không thể tải ảnh.\n";
+        exit(-1);
+    }
+    
+    background.setTexture(backgroundTex);
+    gems.setTexture(gemTex);
+    hud.setTexture(hudTex);
+    startBackground.setTexture(startTex);
+    hud.setPosition(520, 0);
+    hud.setColor(Color(10, 10, 10, 150));
 
-piece::piece() {
-    match = 0;
-    alpha = 255;
+    if (!font.loadFromFile("C:/Windows/Fonts/Verdana.ttf")) {
+        std::cerr << "Không thể tải font.\n";
+        exit(-1);
+    }
+
+    timeText.setFont(font);
+    timeText.setCharacterSize(24);
+    timeText.setFillColor(Color::White);
+    timeText.setPosition(550, 15);
+    
+    scoreText.setFont(font);
+    scoreText.setCharacterSize(24);
+    scoreText.setFillColor(Color::White);
+    scoreText.setPosition(550, 55);
+    
+    titleText.setFont(font);
+    titleText.setString("GAME KIM CUONG");
+    titleText.setCharacterSize(40);
+    titleText.setFillColor(Color::Yellow);
+    titleText.setPosition(180, 100);
+    
+    startBtn.setFont(font);
+    startBtn.setString("Start");
+    startBtn.setCharacterSize(36);
+    startBtn.setFillColor(Color::Green);
+    startBtn.setPosition(270, 250);
+    
+    highScoreBtn.setFont(font);
+    highScoreBtn.setString("High Score");
+    highScoreBtn.setCharacterSize(32);
+    highScoreBtn.setFillColor(Color::Blue);
+    highScoreBtn.setPosition(260, 320);
 }
 
-void initGrid() {
-    for (int i = 1; i <= 8; i++)
+void Game::initGrid() {
+    for (int i = 1; i <= 8; i++) {
         for (int j = 1; j <= 8; j++) {
             grid[i][j].kind = rand() % 7;
             grid[i][j].col = j;
@@ -22,9 +78,10 @@ void initGrid() {
             grid[i][j].match = 0;
             grid[i][j].alpha = 255;
         }
+    }
 }
 
-bool hasInitialMatch() {
+bool Game::hasInitialMatch() {
     for (int i = 1; i <= 8; i++) {
         for (int j = 1; j <= 8; j++) {
             int kind = grid[i][j].kind;
@@ -37,17 +94,18 @@ bool hasInitialMatch() {
     return false;
 }
 
-void swap(piece& p1, piece& p2) {
-    std::swap(p1.col, p2.col);
-    std::swap(p1.row, p2.row);
-    std::swap(grid[p1.row][p1.col], grid[p2.row][p2.col]);
+void Game::saveHighScore(const std::string& filename, int score) {
+    std::ofstream out(filename, std::ios::app);
+    if (out) out << score << "\n";
 }
 
-void startChallengeMode() {
-    // Setup challenge mode with a specific time limit and move limit
-    // Example: 60 seconds and 15 moves.
+std::vector<int> Game::loadHighScores(const std::string& filename) {
+    std::ifstream file(filename);
+    std::vector<int> scores;
+    int score;
+    while (file >> score) scores.push_back(score);
+    std::sort(scores.rbegin(), scores.rend());
+    return scores;
 }
 
-void updateChallengeMode(float time, int &totalScore, int &remainingMoves) {
-    // Logic to update the score and remaining moves based on challenge mode rules.
-}
+// Các chức năng khác như update, render và handleEvents sẽ được viết ở đây...

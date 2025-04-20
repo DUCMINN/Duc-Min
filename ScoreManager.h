@@ -1,6 +1,8 @@
-#pragma once
-#include <vector>
-#include <string>
+#ifndef GRID_H
+#define GRID_H
 
-std::vector<int> loadHighScores(const std::string& filename);
-void saveHighScore(const std::string& filename, int score);
+#include "Game.h"
+
+void updateGrid(piece grid[10][10]);
+
+#endif

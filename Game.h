@@ -5,27 +5,43 @@
 #include <SFML/Audio.hpp>
 #include <vector>
 
+using namespace sf;
+
 struct piece {
     int x, y, col, row, kind, match, alpha;
-    piece();
+    piece() { match = 0; alpha = 255; }
+} grid[10][10];
+
+class Game {
+public:
+    Game();
+    void initGrid();
+    bool hasInitialMatch();
+    void update(float deltaTime);
+    void render(RenderWindow& app);
+    void handleEvents(Event& e, RenderWindow& app);
+    void swap(piece& p1, piece& p2);
+    void saveHighScore(const std::string& filename, int score);
+    std::vector<int> loadHighScores(const std::string& filename);
+
+private:
+    int ts;
+    Vector2i offset;
+    int timeLimit;
+    int totalScore;
+    Clock clock;
+    sf::Music music;
+    sf::Texture backgroundTex, gemTex, hudTex, startTex;
+    sf::Sprite background, gems, hud, startBackground;
+    sf::Font font;
+    sf::Text timeText, scoreText, titleText, startBtn, highScoreBtn;
+    enum class GameState {
+        StartScreen,
+        Playing,
+        HighScoreScreen,
+        GameOver
+    };
+    GameState gameState;
 };
 
-enum class GameState {
-    StartScreen,
-    Playing,
-    HighScoreScreen,
-    GameOver,
-    ChallengeMode
-};
-
-extern piece grid[10][10];
-extern int ts;
-extern sf::Vector2i offset;
-
-void initGrid();
-bool hasInitialMatch();
-void swap(piece& p1, piece& p2);
-void startChallengeMode();
-void updateChallengeMode(float time, int &totalScore, int &remainingMoves);
-
-#endif // GAME_H
+#endif

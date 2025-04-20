@@ -59,13 +59,39 @@ void saveHighScore(const std::string& filename, int score) {
     if (out) out << score << "\n";
 }
 
+auto initGrid = []() {
+    for (int i = 1; i <= 8; i++)
+        for (int j = 1; j <= 8; j++) {
+            grid[i][j].kind = rand() % 7;
+            grid[i][j].col = j;
+            grid[i][j].row = i;
+            grid[i][j].x = j * ts;
+            grid[i][j].y = i * ts;
+            grid[i][j].match = 0;
+            grid[i][j].alpha = 255;
+        }
+    };
+
+bool hasInitialMatch() {
+    for (int i = 1; i <= 8; i++) {
+        for (int j = 1; j <= 8; j++) {
+            int kind = grid[i][j].kind;
+            if (kind == grid[i + 1][j].kind && kind == grid[i - 1][j].kind)
+                return true;
+            if (kind == grid[i][j + 1].kind && kind == grid[i][j - 1].kind)
+                return true;
+        }
+    }
+    return false;
+}
+
 int main() {
     srand(time(0));
     RenderWindow app(VideoMode(720, 480), "Game Kim Cuong", Style::Close);
     app.setVerticalSyncEnabled(true);
-    app.setFramerateLimit(120);
+    app.setFramerateLimit(270);
 
-    // Phát nhạc nền
+    // Nhạc nền
     sf::Music music;
     if (!music.openFromFile("D:/nhacgame.ogg.ogg")) {
         std::cerr << "Không thể mở file nhạc.\n";
@@ -77,7 +103,7 @@ int main() {
 
     // Tải ảnh
     Texture backgroundTex, gemTex, hudTex, startTex;
-    if (!loadTexture(backgroundTex, "D:/game/Data/Texture/background.png") ||
+    if (!loadTexture(backgroundTex, "D:/bg game.jpg") ||
         !loadTexture(gemTex, "D:/game/Data/Texture/gems.png") ||
         !loadTexture(hudTex, "D:/hud.png") ||
         !loadTexture(startTex, "D:/start (2).jpg")) {
@@ -112,17 +138,6 @@ int main() {
     int totalScore = 0;
     Clock clock;
 
-    auto initGrid = []() {
-        for (int i = 1; i <= 8; i++)
-            for (int j = 1; j <= 8; j++) {
-                grid[i][j].kind = rand() % 7;
-                grid[i][j].col = j;
-                grid[i][j].row = i;
-                grid[i][j].x = j * ts;
-                grid[i][j].y = i * ts;
-            }
-        };
-
     initGrid();
 
     int x0, y0, x, y, click = 0;
@@ -141,16 +156,15 @@ int main() {
                         gameState = GameState::Playing;
                         clock.restart();
                         totalScore = 0;
-                        initGrid();
+
+                        // Không cho match ban đầu
+                        do {
+                            initGrid();
+                        } while (hasInitialMatch());
+
                         click = 0;
                         isSwap = false;
                         isMoving = false;
-
-                        for (int i = 1; i <= 8; i++)
-                            for (int j = 1; j <= 8; j++) {
-                                grid[i][j].match = 0;
-                                grid[i][j].alpha = 255;
-                            }
                     }
                     else if (highScoreBtn.getGlobalBounds().contains((float)mousePos.x, (float)mousePos.y)) {
                         gameState = GameState::HighScoreScreen;
@@ -162,12 +176,6 @@ int main() {
                 if (!isSwap && !isMoving && (timeLimit - clock.getElapsedTime().asSeconds() > 0)) {
                     click++;
                     pos = Mouse::getPosition(app) - offset;
-                }
-            }
-
-            if (gameState == GameState::HighScoreScreen || gameState == GameState::GameOver) {
-                if (e.type == Event::MouseButtonPressed && e.mouseButton.button == Mouse::Left) {
-                    gameState = GameState::StartScreen;
                 }
             }
         }
@@ -236,15 +244,18 @@ int main() {
                 }
 
             isMoving = false;
-            for (int i = 1; i <= 8; i++)
+            for (int i = 1; i <= 8; i++) {
                 for (int j = 1; j <= 8; j++) {
                     piece& p = grid[i][j];
                     int dx = p.x - p.col * ts;
                     int dy = p.y - p.row * ts;
-                    if (dx) p.x -= dx / abs(dx);
-                    if (dy) p.y -= dy / abs(dy);
+
+                    if (dx) p.x -= dx / abs(dx) * 3;
+                    if (dy) p.y -= dy / abs(dy) * 3;
+
                     if (dx || dy) isMoving = true;
                 }
+            }
 
             if (!isMoving)
                 for (int i = 1; i <= 8; i++)
@@ -257,9 +268,8 @@ int main() {
             int score = 0;
             for (int i = 1; i <= 8; i++)
                 for (int j = 1; j <= 8; j++)
-                    if (grid[i][j].match > 0)
-                        if (grid[i][j].match >= 3)
-                            score += (grid[i][j].match - 2) * 10;
+                    if (grid[i][j].match >= 1)
+                        score += 10;
 
             if (!isMoving) totalScore += score;
 
@@ -308,17 +318,57 @@ int main() {
 
         else if (gameState == GameState::GameOver) {
             app.draw(background);
-            Text endText("HET GIO!", font, 48);
-            endText.setFillColor(Color::Red);
-            endText.setStyle(Text::Bold);
-            endText.setPosition(250, 200);
-            app.draw(endText);
 
-            Text retryText("Click to return", font, 24);
+            // Kiểm tra nếu không đủ điểm
+            if (totalScore < 1000) {
+                Text loseText("THUA!", font, 48);
+                loseText.setFillColor(Color::Red);
+                loseText.setStyle(Text::Bold);
+                loseText.setPosition(250, 200);
+                app.draw(loseText);
+
+                Text messageText("Điểm của bạn chưa đủ 1000.", font, 24);
+                messageText.setFillColor(Color::White);
+                messageText.setPosition(250, 260);
+                app.draw(messageText);
+            }
+            else {
+                Text winText("CHIẾN THẮNG!", font, 48);
+                winText.setFillColor(Color::Green);
+                winText.setStyle(Text::Bold);
+                winText.setPosition(200, 200);
+                app.draw(winText);
+
+                Text messageText("Bạn đã đạt đủ điểm yêu cầu.", font, 24);
+                messageText.setFillColor(Color::White);
+                messageText.setPosition(250, 260);
+                app.draw(messageText);
+            }
+
+            Text retryText("Click để Restart", font, 24);
             retryText.setFillColor(Color::White);
-            retryText.setPosition(260, 280);
+            retryText.setPosition(260, 320);
             app.draw(retryText);
-        }
+
+            // Khi người chơi click để Restart
+            if (e.type == Event::MouseButtonPressed && e.mouseButton.button == Mouse::Left) {
+                Vector2i mousePos = Mouse::getPosition(app);
+                if (retryText.getGlobalBounds().contains((float)mousePos.x, (float)mousePos.y)) {
+                    gameState = GameState::StartScreen;
+                    clock.restart();
+                    totalScore = 0;
+
+                    // Không cho match ban đầu
+                    do {
+                        initGrid();
+                    } while (hasInitialMatch());
+
+                    click = 0;
+                    isSwap = false;
+                    isMoving = false;
+                }
+            }
+}
 
         app.display();
     }

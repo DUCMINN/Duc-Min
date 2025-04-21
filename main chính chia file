@@ -7,13 +7,20 @@
 #include <algorithm>
 
 using namespace sf;
-
+int combo = 0;
+int score = 0;
 int ts = 54;
+const float moveSpeed =6;
 Vector2i offset(48, 28);
 
 struct piece {
-    int x, y, col, row, kind, match, alpha;
-    piece() { match = 0; alpha = 255; }
+    int x, y;  //  vị trí pixel
+    int  col, row; // vị trí trong luới 
+    int kind;// // loại gem (0-6)
+    int  match; // // có đang nằm trong chuỗi ăn được không, 
+	int alpha; // độ mờ khi biến mất
+ 
+    piece() { match = 0; alpha = 300; }
 } grid[10][10];
 
 enum class GameState {
@@ -58,7 +65,7 @@ void saveHighScore(const std::string& filename, int score) {
     std::ofstream out(filename, std::ios::app);
     if (out) out << score << "\n";
 }
-
+//Khởi tạo lưới với gem ngẫu nhiên
 auto initGrid = []() {
     for (int i = 1; i <= 8; i++)
         for (int j = 1; j <= 8; j++) {
@@ -90,10 +97,18 @@ int main() {
     RenderWindow app(VideoMode(720, 480), "Game Kim Cuong", Style::Close);
     app.setVerticalSyncEnabled(true);
     app.setFramerateLimit(270);
+    sf::SoundBuffer match4Buffer;
+    match4Buffer.loadFromFile("D:/an4.wav");
+    sf::Sound match4Sound;
+    match4Sound.setBuffer(match4Buffer);
 
+    sf::SoundBuffer match5Buffer;
+    match5Buffer.loadFromFile("D:/an5.wav");
+    sf::Sound match5Sound;
+    match5Sound.setBuffer(match5Buffer);
     // Nhạc nền
     sf::Music music;
-    if (!music.openFromFile("D:/nhacgame.ogg.ogg")) {
+    if (!music.openFromFile("D:/nhacgame1.ogg")) {
         std::cerr << "Không thể mở file nhạc.\n";
         return -1;
     }
@@ -104,14 +119,22 @@ int main() {
     // Tải ảnh
     Texture backgroundTex, gemTex, hudTex, startTex;
     if (!loadTexture(backgroundTex, "D:/bg game.jpg") ||
-        !loadTexture(gemTex, "D:/game/Data/Texture/gems.png") ||
-        !loadTexture(hudTex, "D:/hud.png") ||
-        !loadTexture(startTex, "D:/start (2).jpg")) {
+        !loadTexture(gemTex, "C:/Users/tamin/OneDrive/Desktop/gems.png") ||
+      
+        !loadTexture(startTex, "D:/bg2.jpg")) {
         return -1;
     }
+    if (score > 0)
+    {
+        combo++;
+        // Nếu combo đủ 4 hoặc 5 trở lên thì phát sound
+        if (combo == 4) match4Sound.play();
+        else if (combo >= 5) match5Sound.play();
 
+        score += 10 * combo;
+    }
     Sprite background(backgroundTex), gems(gemTex), hud(hudTex), startBackground(startTex);
-    hud.setPosition(520, 0);
+    hud.setPosition(520,-30);
     hud.setColor(Color(10, 10, 10, 150));
 
     Font font;
@@ -131,10 +154,10 @@ int main() {
 
     Text highScoreBtn("High Score", font, 32);
     highScoreBtn.setFillColor(Color::Blue);
-    highScoreBtn.setPosition(260, 320);
+    highScoreBtn.setPosition(270, 325);
 
     GameState gameState = GameState::StartScreen;
-    int timeLimit = 90;
+    int timeLimit = 120;
     int totalScore = 0;
     Clock clock;
 
@@ -217,6 +240,7 @@ int main() {
                 remainingTime = 0;
                 saveHighScore("highscores.txt", totalScore);
                 gameState = GameState::GameOver;
+              
             }
 
             if (click == 1) {
@@ -250,8 +274,8 @@ int main() {
                     int dx = p.x - p.col * ts;
                     int dy = p.y - p.row * ts;
 
-                    if (dx) p.x -= dx / abs(dx) * 3;
-                    if (dy) p.y -= dy / abs(dy) * 3;
+                    if (dx) p.x -= dx / abs(dx) * moveSpeed;
+                    if (dy) p.y -= dy / abs(dy) * moveSpeed;
 
                     if (dx || dy) isMoving = true;
                 }
@@ -312,6 +336,8 @@ int main() {
             app.draw(hud);
             timeText.setString("Time: " + std::to_string(remainingTime));
             scoreText.setString("Score: " + std::to_string(totalScore));
+            timeText.setPosition(570, 70); // hoặc vị trí bạn muốn
+            scoreText.setPosition(570,100 );
             app.draw(timeText);
             app.draw(scoreText);
         }
@@ -368,7 +394,7 @@ int main() {
                     isMoving = false;
                 }
             }
-}
+        }
 
         app.display();
     }
